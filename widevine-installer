@@ -117,22 +117,23 @@ read dummy
 
 python3 "$SCRIPT_BASE/widevine_fixup.py" squashfs-root/WidevineCdm/_platform_specific/cros_arm64/libwidevinecdm.so libwidevinecdm.so
 
-# snaps store everything in $HOME/snap
-echo "Installing for Firefox..."
-if [ -d "$HOME/snap/firefox" ]; then
-	profiles=$(grep -oP "Path=\K.*" < "$HOME/snap/firefox/common/.mozilla/firefox/profiles.ini")
-	for p in $profiles; do
-		snap_profile_base="$HOME/snap/firefox/common/.mozilla/firefox/$p"
-		mkdir -p "$snap_profile_base/gmp-widevinecmd/system-installed"
-		install -p -m 0755 -t "$snap_profile_base/gmp-widevinecmd/system-installed" libwidevinecdm.so
-		install -p -m 0644 -t "$snap_profile_base/gmp-widevinecmd/system-installed" squashfs-root/WidevineCdm/manifest.json
-		install -p -m 0644 -t "$snap_profile_base/gmp-widevinecmd/system-installed" squashfs-root/WidevineCdm/LICENSE
-
-		if [ "$COPY_CONFIGS" = 1 ]; then
-			cat "$SCRIPT_BASE/conf/gmpwidevine.js" >> "$snap_profile_base/user.js"
-		fi
-	done
-fi
+# NOTYET
+# # snaps store everything in $HOME/snap
+# echo "Installing for Firefox..."
+# if [ -d "$HOME/snap/firefox" ]; then
+# 	profiles=$(grep -oP "Path=\K.*" < "$HOME/snap/firefox/common/.mozilla/firefox/profiles.ini")
+# 	for p in $profiles; do
+# 		snap_profile_base="$HOME/snap/firefox/common/.mozilla/firefox/$p"
+# 		mkdir -p "$snap_profile_base/gmp-widevinecmd/system-installed"
+# 		install -p -m 0755 -t "$snap_profile_base/gmp-widevinecmd/system-installed" libwidevinecdm.so
+# 		install -p -m 0644 -t "$snap_profile_base/gmp-widevinecmd/system-installed" squashfs-root/WidevineCdm/manifest.json
+# 		install -p -m 0644 -t "$snap_profile_base/gmp-widevinecmd/system-installed" squashfs-root/WidevineCdm/LICENSE
+# 
+# 		if [ "$COPY_CONFIGS" = 1 ]; then
+# 			cat "$SCRIPT_BASE/conf/gmpwidevine.js" >> "$snap_profile_base/user.js"
+# 		fi
+# 	done
+# fi
 
 echo "Installing for Chromium..."
 if [ -d "$HOME/snap/chromium" ]; then
