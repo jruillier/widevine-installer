@@ -52,10 +52,10 @@ if [ "$(uname -m)" != "aarch64" ]; then
     exit 1
 fi
 
-if [ "$(whoami)" != "root" ]; then
-    echo "This tool needs to be run as root."
-    exit 1
-fi
+# if [ "$(whoami)" != "root" ]; then
+#     echo "This tool needs to be run as root."
+#     exit 1
+# fi
 
 verchk() {
     (
@@ -117,26 +117,39 @@ read dummy
 
 python3 "$SCRIPT_BASE/widevine_fixup.py" squashfs-root/WidevineCdm/_platform_specific/cros_arm64/libwidevinecdm.so libwidevinecdm.so
 
-echo
-echo "Installing..."
-install -d -m 0755 "$INSTALL_BASE"
-install -p -m 0755 -t "$INSTALL_BASE" libwidevinecdm.so
-install -p -m 0644 -t "$INSTALL_BASE" squashfs-root/WidevineCdm/manifest.json
-install -p -m 0644 -t "$INSTALL_BASE" squashfs-root/WidevineCdm/LICENSE
+# snaps store everything in $HOME/snap
+echo "Installing for Firefox..."
+if [ -d "$HOME/snap/firefox" ]; then
+	profiles=$(grep -oP "Path=\K.*" < "$HOME/snap/firefox/common/.mozilla/firefox/profiles.ini")
+	for p in $profiles; do
+		snap_profile_base="$HOME/snap/firefox/common/.mozilla/firefox/$p"
+		mkdir -p "$snap_profile_base/gmp-widevinecmd/system-installed"
+		install -p -m 0755 -t "$snap_profile_base/gmp-widevinecmd/system-installed" libwidevinecdm.so
+		install -p -m 0644 -t "$snap_profile_base/gmp-widevinecmd/system-installed" squashfs-root/WidevineCdm/manifest.json
+		install -p -m 0644 -t "$snap_profile_base/gmp-widevinecmd/system-installed" squashfs-root/WidevineCdm/LICENSE
 
-echo "Setting up plugin for Firefox and Chromium-based browsers..."
-mkdir -p "$INSTALL_BASE"/gmp-widevinecdm/system-installed
-ln -sf ../../manifest.json "$INSTALL_BASE"/gmp-widevinecdm/system-installed/
-ln -sf ../../libwidevinecdm.so "$INSTALL_BASE"/gmp-widevinecdm/system-installed/
-mkdir -p "$INSTALL_BASE"/WidevineCdm/_platform_specific/linux_arm64
-mkdir -p "$INSTALL_BASE"/WidevineCdm/_platform_specific/linux_x64
-# Hack because Chromium hardcodes a check for this right now...
-touch "$INSTALL_BASE"/WidevineCdm/_platform_specific/linux_x64/libwidevinecdm.so
-ln -sf ../manifest.json "$INSTALL_BASE"/WidevineCdm
-ln -sf ../../../libwidevinecdm.so "$INSTALL_BASE"/WidevineCdm/_platform_specific/linux_arm64/
+		if [ "$COPY_CONFIGS" = 1 ]; then
+			cat "$SCRIPT_BASE/conf/gmpwidevine.js" >> "$snap_profile_base/user.js"
+		fi
+	done
+fi
 
-if [ "$COPY_CONFIGS" = 1 ]; then
-    install_configs
+echo "Installing for Chromium..."
+if [ -d "$HOME/snap/chromium" ]; then
+	# Workaround
+	chrome_base="$HOME/snap/chromium/common/chromium/WidevineCdm/"
+	mkdir -p "$chrome_base/system-installed/_platform_specific/linux_x64"
+	touch "$chrome_base/system-installed/_platform_specific/linux_x64/libwidevinecdm.so"
+
+	mkdir -p "$chrome_base/system-installed/_platform_specific/linux_arm64"
+	install -p -m 0755 -t "$chrome_base/system-installed/_platform_specific/linux_arm64" libwidevinecdm.so
+	install -p -m 0644 -t "$chrome_base/system-installed" \
+	    squashfs-root/WidevineCdm/manifest.json
+
+	if [ "$COPY_CONFIGS" = 1 ]; then
+		cp "$SCRIPT_BASE/conf/latest-component-updated-widevine-cdm" \
+		    "$chrome_base"
+	fi
 fi
 
 echo "Cleaning up..."
