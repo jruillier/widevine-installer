@@ -123,9 +123,9 @@ if [ -d "$HOME/snap/firefox" ]; then
 	profiles=$(grep -oP "Path=\K.*" < "$HOME/snap/firefox/common/.mozilla/firefox/profiles.ini")
 	for p in $profiles; do
 		snap_profile_base="$HOME/snap/firefox/common/.mozilla/firefox/$p"
-		install -d -m 0755 "$snap_profile_base/gmp-widevinecmd/system-installed"
-		install -p -m 0755 -t "$snap_profile_base/gmp-widevinecmd/system-installed" libwidevinecdm.so
-		install -p -m 0644 -t "$snap_profile_base/gmp-widevinecmd/system-installed" squashfs-root/WidevineCdm/manifest.json
+		install -d -m 0755 "$snap_profile_base/gmp-widevinecdm/system-installed"
+		install -p -m 0755 -t "$snap_profile_base/gmp-widevinecdm/system-installed" libwidevinecdm.so
+		install -p -m 0644 -t "$snap_profile_base/gmp-widevinecdm/system-installed" squashfs-root/WidevineCdm/manifest.json
 
 		if [ "$COPY_CONFIGS" = 1 ]; then
 			cat "$SCRIPT_BASE/conf/gmpwidevine.js" >> "$snap_profile_base/user.js"
