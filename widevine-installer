@@ -152,6 +152,25 @@ if [ -d "$HOME/snap/chromium" ]; then
 	fi
 fi
 
+echo "Installing for Vivaldi..."
+if [ -d "$HOME/snap/vivaldi" ]; then
+	# Workaround
+	chrome_base="$HOME/snap/vivaldi/common/vivaldi/WidevineCdm/"
+	mkdir -p "$chrome_base/system-installed/_platform_specific/linux_x64"
+	touch "$chrome_base/system-installed/_platform_specific/linux_x64/libwidevinecdm.so"
+
+	mkdir -p "$chrome_base/system-installed/_platform_specific/linux_arm64"
+	install -p -m 0755 -t "$chrome_base/system-installed/_platform_specific/linux_arm64" libwidevinecdm.so
+	install -p -m 0644 -t "$chrome_base/system-installed" \
+	    squashfs-root/WidevineCdm/manifest.json
+
+	if [ "$COPY_CONFIGS" = 1 ]; then
+		cp "$SCRIPT_BASE/conf/latest-component-updated-widevine-cdm" \
+		    "$chrome_base"
+		sed -i "s|USER_HOME|$HOME|" "$chrome_base/latest-component-updated-widevine-cdm"
+	fi
+fi
+
 echo "Cleaning up..."
 cd /
 rm -rf "$workdir"
